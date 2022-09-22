@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using UnityEditor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -143,19 +144,12 @@ public class NffImporter : ScriptedImporter
     public override void OnImportAsset(AssetImportContext ctx)
     {
         var baseName = Path.GetFileName(ctx.assetPath);
-
-        var lines = File.ReadAllLines(ctx.assetPath);
-
         var root = new GameObject($"{baseName}_root");
-
         var reader = new NffReader(ctx.assetPath);
 
         reader.ParseMesh(baseName, root, ctx);
 
         ctx.AddObjectToAsset(ctx.assetPath, root);
         ctx.SetMainObject(root);
-
-
-        //DestroyImmediate(mesh);
     }
 }
