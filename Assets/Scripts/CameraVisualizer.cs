@@ -9,6 +9,11 @@ public class CameraVisualizer : MonoBehaviour
     private float right;
     private float bottom;
     private float left;
+    private Vector2 pixelSize;
+
+    public bool ShowGizmos = true;
+    public bool ShowDebugRay = false;
+    public Vector2 DebugPixel = new Vector2(0, 0);
 
     public CameraSettings Settings;
 
@@ -24,6 +29,9 @@ public class CameraVisualizer : MonoBehaviour
 
     void Update()
     {
+        if (Settings == null)
+            return;
+
         var viewDir = Settings.At - Settings.From;
         transform.position = Settings.From;
         transform.rotation = Quaternion.LookRotation(viewDir.normalized, Settings.Up);
@@ -38,6 +46,9 @@ public class CameraVisualizer : MonoBehaviour
         bottom = -top;
         right = -left;
 
+        pixelSize.x = (2.0f * top) / Settings.Resolution.x;
+        pixelSize.y = (2.0f * right) / Settings.Resolution.y;
+
         if (ImagePlane == null)
             return;
 
@@ -49,8 +60,14 @@ public class CameraVisualizer : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        if (!ShowGizmos)
+            return; 
+
         var viewDir = Settings.At - Settings.From;
         var d = viewDir.magnitude;
+
+        float xOffset = ShowDebugRay ? (DebugPixel.x + 0.5f) * pixelSize.x : 0.0f;
+        float yOffset = ShowDebugRay ? (DebugPixel.y + 0.5f) * pixelSize.y : 0.0f;
 
 
         Gizmos.DrawRay(Settings.From, viewDir);
@@ -72,8 +89,14 @@ public class CameraVisualizer : MonoBehaviour
         }
 
         Gizmos.color = Color.green;
-
         Gizmos.DrawWireSphere(Settings.At, 0.1f);
+
+        if (ShowDebugRay)
+        {
+            Gizmos.color = Color.magenta;
+            var dir = d * transform.forward + (top - yOffset) * transform.up + (left + xOffset) * transform.right;
+            Gizmos.DrawRay(Settings.From, dir);
+        }
         
     }
 }
