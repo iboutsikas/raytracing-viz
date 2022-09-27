@@ -5,6 +5,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 internal class NffReader
 {
@@ -22,7 +23,9 @@ internal class NffReader
         var vertices = new List<Vector3>();
         var indices = new List<int>();
         int meshCounter = 0;
+        int sphereCounter = 0;
         Mesh mesh = null;
+        Material latestMaterial = null;
 
         var cameraSettings = ScriptableObject.CreateInstance<CameraSettings>();
 
@@ -34,52 +37,54 @@ internal class NffReader
             switch (tokens[0])
             {
                 case "from":
-                {
-                    cameraSettings.From = new Vector3(
-                        float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
-                        float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
-                        float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
-                    );
-                    break;
-                }
+                    {
+                        cameraSettings.From = new Vector3(
+                            float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
+                        );
+                        break;
+                    }
                 case "at":
-                {
-                    cameraSettings.At = new Vector3(
-                        float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
-                        float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
-                        float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
-                    );
-                    break;
-                }
+                    {
+                        cameraSettings.At = new Vector3(
+                            float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
+                        );
+                        break;
+                    }
                 case "up":
-                {
-                    cameraSettings.Up = new Vector3(
-                        float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
-                        float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
-                        float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
-                    );
-                    break;
-                }
+                    {
+                        cameraSettings.Up = new Vector3(
+                            float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
+                        );
+                        break;
+                    }
                 case "angle":
-                {
-                    cameraSettings.Angle = float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat);
-                    break;
-                }
+                    {
+                        cameraSettings.Angle = float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat);
+                        break;
+                    }
                 case "resolution":
-                {
-                    cameraSettings.Resolution = new Vector2Int(
-                        int.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
-                        int.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat)
-                    );
-                    break;
-                }
+                    {
+                        cameraSettings.Resolution = new Vector2Int(
+                            int.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                            int.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat)
+                        );
+                        break;
+                    }
                 case "f":
                     {
                         // First we add the vertices for the previous mesh
                         if (mesh != null)
                         {
-                            mesh.vertices = vertices.ToArray();
-                            mesh.triangles = indices.ToArray();
+                            if (vertices.Count != 0)
+                                mesh.vertices = vertices.ToArray();
+                            if (indices.Count != 0)
+                                mesh.triangles = indices.ToArray();
 
                             vertices = new List<Vector3>();
                             indices = new List<int>();
@@ -91,7 +96,9 @@ internal class NffReader
                         var meshFilter = go.AddComponent<MeshFilter>();
                         var meshRenderer = go.AddComponent<MeshRenderer>();
 
-                        var latestMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                        latestMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                        latestMaterial.enableInstancing = true;
+
                         var color = new Color(
                             float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
                             float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
@@ -103,7 +110,7 @@ internal class NffReader
                         meshRenderer.sharedMaterial = latestMaterial;
                         ctx.AddObjectToAsset($"{meshName}_material{meshCounter}", latestMaterial);
 
-                        mesh = new Mesh() {name = $"Mesh {meshCounter}"};
+                        mesh = new Mesh() { name = $"Mesh {meshCounter}" };
                         ctx.AddObjectToAsset($"{meshName}_mesh{meshCounter}", mesh);
                         meshFilter.sharedMesh = mesh;
 
@@ -112,18 +119,64 @@ internal class NffReader
                 case "p":
                     {
                         var numVerts = int.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat);
+                        Vector3[] polygonVertices = new Vector3[numVerts];
+
                         for (int v = 1; v <= numVerts; v++)
                         {
                             var vertexLine = lines[lineIndex + v];
                             var vertexTokens = vertexLine.Split(" ");
 
-                            indices.Add(vertices.Count);
-                            vertices.Add(new Vector3(
+                            polygonVertices[v - 1] = new Vector3(
                                 float.Parse(vertexTokens[0], CultureInfo.InvariantCulture.NumberFormat),
                                 float.Parse(vertexTokens[1], CultureInfo.InvariantCulture.NumberFormat),
                                 float.Parse(vertexTokens[2], CultureInfo.InvariantCulture.NumberFormat)
-                            ));
+                            );
                         }
+
+                        var v0 = polygonVertices[0];
+                        var v0Index = vertices.Count;
+                        vertices.Add(v0);
+
+                        for (int v = 1; v < numVerts - 1; v++)
+                        {
+                            // V0 is already in, just add index
+                            indices.Add(v0Index);
+                            
+                            // V1
+                            indices.Add(vertices.Count);
+                            vertices.Add(polygonVertices[v]);
+
+                            // V2
+                            indices.Add(vertices.Count);
+                            vertices.Add(polygonVertices[v + 1]);
+                        }
+
+                        break;
+                    }
+                case "s":
+                    {
+                        var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                        sphere.name = $"Sphere {sphereCounter++}";
+
+                        var meshRenderer = sphere.GetComponent<MeshRenderer>();
+                        if (latestMaterial != null)
+                            meshRenderer.sharedMaterial = latestMaterial;
+
+                        meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                        //meshRenderer.receiveShadows = false;
+
+                        var position = new Vector3(
+                            float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
+                            float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
+                        );
+                        var radius = float.Parse(tokens[4], CultureInfo.InvariantCulture.NumberFormat);
+
+                        var scale = new Vector3(radius, radius, radius);
+
+                        sphere.transform.localPosition = position;
+                        sphere.transform.localScale = scale;
+                        sphere.transform.SetParent(root.transform);
                         break;
                     }
             }
@@ -132,8 +185,10 @@ internal class NffReader
         ctx.AddObjectToAsset($"{meshName}_cameraSettings", cameraSettings);
         if (mesh != null)
         {
-            mesh.vertices = vertices.ToArray();
-            mesh.triangles = indices.ToArray();
+            if (vertices.Count != 0)
+                mesh.vertices = vertices.ToArray();
+            if (indices.Count != 0)
+                mesh.triangles = indices.ToArray();
         }
     }
 }
