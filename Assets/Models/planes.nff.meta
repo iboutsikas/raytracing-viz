@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 7d5cca06cb489ad4da406ebff27e135c
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mesh 0:planes.nff:material0
+    second: {fileID: 2100000, guid: ee8d3e96225deb2418ebd30f923d3603, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mesh 0:planes.nff_material0
+    second: {fileID: 2100000, guid: ee8d3e96225deb2418ebd30f923d3603, type: 2}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: e1b94f1cff83bb94dbb5128c546f2c58, type: 3}
+  defaultShader: {instanceID: 0}
