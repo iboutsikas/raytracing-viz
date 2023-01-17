@@ -36,6 +36,7 @@ namespace iboutsikas.CustomImporters
             Material latestMaterial = null;
 
             var cameraSettings = ScriptableObject.CreateInstance<CameraSettings>();
+            cameraSettings.name = $"{meshName}:CameraSettings";
 
 
             for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
@@ -222,7 +223,7 @@ namespace iboutsikas.CustomImporters
                 }
             }
 
-            ctx.AddObjectToAsset($"{meshName}_cameraSettings", cameraSettings);
+            ctx.AddObjectToAsset(cameraSettings.name, cameraSettings);
             if (mesh != null)
             {
                 if (vertices.Count != 0)
