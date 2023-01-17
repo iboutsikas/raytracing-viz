@@ -86,13 +86,19 @@ namespace iboutsikas.CustomImporters
     internal struct RayshadeKeywords
     {
         // Surface related keywords
-
         internal const string Surface           = "surface";
         internal const string Ambient           = "ambient";
         internal const string Diffuse           = "diffuse";
         internal const string Specular          = "specular";
         internal const string SpecularPower     = "specpow";
         internal const string Reflect           = "reflect";
+
+        // View related
+        internal const string EyePosition       = "eyep";
+        internal const string LookAt            = "lookp";
+        internal const string Up                = "up";
+        internal const string FOV               = "fov";
+        internal const string Resolution        = "screen";
 
         // Shapes
         internal const string Sphere            = "sphere";
@@ -164,6 +170,47 @@ namespace iboutsikas.CustomImporters
                         );
 
                     latestMaterial.color = color;
+                }
+                else if (tokens[0] == RayshadeKeywords.EyePosition)
+                {
+                    var position = new Vector3(
+                        float.Parse(tokens[1],  CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(tokens[2],  CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(tokens[3],  CultureInfo.InvariantCulture.NumberFormat)
+                    );
+                    cameraSettings.From = position;
+                }
+                else if (tokens[0] == RayshadeKeywords.LookAt)
+                {
+                    var position = new Vector3(
+                        float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
+                    );
+                    cameraSettings.At = position;
+                }
+                else if (tokens[0] == RayshadeKeywords.Up)
+                {
+                    var up = new Vector3(
+                        float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(tokens[3], CultureInfo.InvariantCulture.NumberFormat)
+                    );
+                    cameraSettings.Up = up;
+                }
+                else if (tokens[0] == RayshadeKeywords.FOV)
+                {
+                    var angle = float.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat);
+
+                    cameraSettings.Angle = angle;
+                }
+                else if (tokens[0] == RayshadeKeywords.Resolution)
+                {
+                    var resolution = new Vector2Int(
+                        int.Parse(tokens[1], CultureInfo.InvariantCulture.NumberFormat),
+                        int.Parse(tokens[2], CultureInfo.InvariantCulture.NumberFormat)
+                    );
+                    cameraSettings.Resolution = resolution;
                 }
                 else if (tokens[0] == RayshadeKeywords.Sphere)
                 {
