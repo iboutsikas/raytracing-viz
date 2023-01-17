@@ -220,6 +220,7 @@ namespace iboutsikas.CustomImporters
 
                     var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                     sphere.name = $"Sphere {sphereCounter++}";
+                    sphere.AddComponent<RayshadeCustomData>();
 
                     var meshRenderer = sphere.GetComponent<MeshRenderer>();
                     meshRenderer.sharedMaterial = theMaterial;
@@ -246,6 +247,7 @@ namespace iboutsikas.CustomImporters
                     var go = new GameObject($"Triangle {triangleCounter++}");
                     var meshFilter = go.AddComponent<MeshFilter>();
                     var meshRenderer = go.AddComponent<MeshRenderer>();
+                    go.AddComponent<RayshadeCustomData>();
                     
 
                     var linesConsumed = GatherAdditionalTokens(lineIndex, ref lines, ref tokens);
