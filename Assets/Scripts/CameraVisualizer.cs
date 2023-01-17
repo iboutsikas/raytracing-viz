@@ -1,6 +1,9 @@
 ﻿using iboutsikas.CustomImporters;
 using System.Collections;
 using System.Collections.Generic;
+
+using UnityEditor;
+
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -10,23 +13,22 @@ public class CameraVisualizer : MonoBehaviour
     private float right;
     private float bottom;
     private float left;
-    private Vector2 pixelSize;
+    private float tan;
 
+    private Vector2 pixelSize;
+    
     public bool ShowGizmos = true;
+    public bool ShowPlane = false;
+    public bool ShowDistanceToPlane = false;
+    public bool ShowHalfHeight = false;
+    public bool ShowHalfWidth = false;
+    public bool ShowFrustumLines = false;
+
     public bool ShowDebugRay = false;
     public Vector2 DebugPixel = new Vector2(0, 0);
 
     public CameraSettings Settings;
-
-
     public GameObject ImagePlane;
-
-    void OnEnable()
-    {
-    }
-    void Start()
-    {
-    }
 
     void Update()
     {
@@ -40,7 +42,7 @@ public class CameraVisualizer : MonoBehaviour
 
         var d = viewDir.magnitude;
         var theta_2 = (Settings.Angle * 0.5f) * Mathf.Deg2Rad ;
-        var tan = Mathf.Tan(theta_2);
+        tan = Mathf.Tan(theta_2);
 
         top = d * tan;
         left = -d * tan;
@@ -70,27 +72,70 @@ public class CameraVisualizer : MonoBehaviour
         float xOffset = ShowDebugRay ? (DebugPixel.x + 0.5f) * pixelSize.x : 0.0f;
         float yOffset = ShowDebugRay ? (DebugPixel.y + 0.5f) * pixelSize.y : 0.0f;
 
+        var topLeft = d * transform.forward + top * transform.up + left * transform.right;
+        var topRight = d * transform.forward + top * transform.up + right * transform.right;
+        var bottomRight = d * transform.forward + bottom * transform.up + right * transform.right;
+        var bottomLeft = d * transform.forward + bottom * transform.up + left * transform.right;
+        //Debug.Log(topLeft);
 
-        Gizmos.DrawRay(Settings.From, viewDir);
+        Color originalGizmoColor = Gizmos.color;
+        Color originalHandlesColor = Handles.color;
+
+        if (ShowPlane)
         {
-            var dir = d * transform.forward + top * transform.up + left * transform.right;
-            Gizmos.DrawRay(Settings.From, dir);
-        }
-        {
-            var dir = d * transform.forward + top * transform.up + right * transform.right;
-            Gizmos.DrawRay(Settings.From, dir);
-        }
-        {
-            var dir = d * transform.forward + bottom * transform.up + right * transform.right;
-            Gizmos.DrawRay(Settings.From, dir);
-        }
-        {
-            var dir = d * transform.forward + bottom * transform.up + left * transform.right;
-            Gizmos.DrawRay(Settings.From, dir);
+            Gizmos.DrawLine(topLeft + Settings.From, topRight + Settings.From);
+            Gizmos.DrawLine(topRight + Settings.From, bottomRight + Settings.From);
+            Gizmos.DrawLine(bottomRight + Settings.From, bottomLeft + Settings.From);
+            Gizmos.DrawLine(bottomLeft + Settings.From, topLeft + Settings.From);
         }
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(Settings.At, 0.1f);
+        if (ShowDistanceToPlane)
+        {
+            // Draw the view ray
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(Settings.From, viewDir);
+            // d text
+            Handles.color = Color.white;
+            Handles.Label(Settings.From + viewDir / 2.0f, $"d = {d}");
+            // Draw end point
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(Settings.At, 0.05f);
+            Gizmos.color = originalGizmoColor;
+        }
+
+        if (ShowHalfHeight)
+        {
+            var dir = top * transform.up;
+            var endPoint = Settings.At + dir;
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(Settings.At, dir);
+            
+            Handles.Label(Settings.At + dir / 2, $"d * tan({Settings.Angle}/2) = {top}");            
+            
+            Handles.Label(endPoint + dir * 0.08f , $"({endPoint.x:f2}, {endPoint.y:f2}, {endPoint.z:f2})");
+            
+        }
+
+        if (ShowHalfWidth)
+        {
+            var dir = right * transform.right;
+            var endPoint = Settings.At + dir;
+            
+            Gizmos.color = Color.red;   
+            Gizmos.DrawRay(Settings.At, dir);
+            Handles.Label(Settings.At + (dir / 2) + (0.05f * transform.up), $"r = aspect * top = {right}"); 
+            Handles.Label(endPoint + dir * 0.08f , $"({endPoint.x:f2}, {endPoint.y:f2}, {endPoint.z:f2})");
+        }
+
+        if (ShowFrustumLines)
+        {
+            Gizmos.color = Color.white;
+            Gizmos.DrawRay(Settings.From, topLeft);
+            Gizmos.DrawRay(Settings.From, topRight);
+            Gizmos.DrawRay(Settings.From, bottomRight);
+            Gizmos.DrawRay(Settings.From, bottomLeft);
+        }
 
         if (ShowDebugRay)
         {
@@ -98,6 +143,8 @@ public class CameraVisualizer : MonoBehaviour
             var dir = d * transform.forward + (top - yOffset) * transform.up + (left + xOffset) * transform.right;
             Gizmos.DrawRay(Settings.From, dir);
         }
-        
+
+        Gizmos.color = originalGizmoColor;
+        Handles.color = originalHandlesColor;
     }
 }
