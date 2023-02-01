@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Foldout text="Frustum and Image Plane" name="frustum_and_plane">
+        <ui:Toggle label="Enable Gizmos" binding-path="ShowFrustumAndPlane" />
+        <ui:Toggle label="Distace to Image Plane" binding-path="ShowDistanceToPlane" />
+        <ui:Toggle label="Image" binding-path="ShowPlane" />
+        <ui:Toggle label="Half Width" binding-path="ShowHalfWidth" />
+        <ui:Toggle label="Half Height" binding-path="ShowHalfHeight" />
+        <ui:Toggle label="Frustum Lines" binding-path="ShowFrustumLines" />
+    </ui:Foldout>
+    <ui:Foldout text="Anti-aliasing" name="anti_aliasing">
+        <ui:Toggle label="Enable Gizmos" binding-path="ShowAntiAliasing" />
+        <ui:SliderInt picking-mode="Ignore" label="AA Samples" value="1" high-value="100" binding-path="NumAASamples" show-input-field="true" inverted="false" />
+        <ui:Vector2Field label="AA Pixel" binding-path="AAPixel" />
+        <uie:ColorField label="Ray Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="AARayColor" show-alpha="false" />
+        <ui:Button text="Recalculate Rays" display-tooltip-when-elided="true" name="recalculate_aa_rays" />
+    </ui:Foldout>
+    <ui:Foldout text="Depth of Field" name="dof">
+        <ui:Toggle label="Enable Gizmos" binding-path="ShowDepthOfField" />
+        <ui:SliderInt picking-mode="Ignore" label="DoF Samples" value="2" high-value="100" show-input-field="true" binding-path="NumDoFSamples" />
+        <ui:Slider picking-mode="Ignore" label="Aperture" value="0.5" high-value="2" binding-path="Aperature" show-input-field="true" />
+        <ui:Slider picking-mode="Ignore" label="Ray Multiplier" value="1" high-value="100" binding-path="DoFRayMultiplier" low-value="1" show-input-field="true" />
+        <ui:Vector2Field label="DoF Pixel&#x9;" binding-path="DoFPixel" />
+        <uie:ColorField label="Ray Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="DoFRayColor" show-alpha="false" />
+        <ui:Button text="Recalculate Rays" display-tooltip-when-elided="true" name="recalculate_dof_rays" />
+    </ui:Foldout>
+    <ui:Foldout text="Debug Ray" name="debug_ray">
+        <ui:Toggle label="Enable Gizmos" binding-path="ShowDebugRay" />
+        <ui:Vector2Field label="Debug Pixel" binding-path="DebugPixel" />
+        <ui:SliderInt picking-mode="Ignore" label="Magnitude Multiplier" value="1" high-value="100" low-value="1" binding-path="DebugRayMultiplier" />
+    </ui:Foldout>
+</ui:UXML>
