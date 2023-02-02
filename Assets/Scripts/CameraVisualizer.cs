@@ -233,7 +233,10 @@ public class CameraVisualizer : MonoBehaviour
         float xOffset = (DoFPixel.x + 0.5f) * pixelSize.x;
         float yOffset = (DoFPixel.y + 0.5f) * pixelSize.y;
 
-        var pixelCenter = info.distance * transform.forward + (top - yOffset) * transform.up + (left + xOffset) * transform.right;
+        var pixelCenter = Settings.From
+            + info.distance * transform.forward 
+            + (top - yOffset) * transform.up 
+            + (left + xOffset) * transform.right;
         
 
         foreach (var origin in dofOrigins)

@@ -21,7 +21,7 @@ public class CameraVisualiserEditor : Editor
         scriptPropField.SetEnabled(false);
         inspector.Add(scriptPropField);
 
-        inspector.Add(new PropertyField(serializedObject.FindProperty("CameraSettings")));
+        inspector.Add(new PropertyField(serializedObject.FindProperty("Settings")));
         inspector.Add(new PropertyField(serializedObject.FindProperty("ImagePlane")));
 
         VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(xmlPath);
