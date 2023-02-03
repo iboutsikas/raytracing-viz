@@ -46,7 +46,7 @@ public class CameraVisualizer : MonoBehaviour
 
     public bool ShowDebugRay = false;
     public Vector2 DebugPixel = new Vector2(0, 0);
-    public int DebugRayMultiplier = 1;
+    public float DebugRayMultiplier = 1;
 
     public bool ShowAntiAliasing = false;
     public int NumAASamples = 0;

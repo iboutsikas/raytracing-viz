@@ -11,7 +11,7 @@
         <ui:Toggle label="Enable Gizmos" binding-path="ShowAntiAliasing" />
         <ui:SliderInt picking-mode="Ignore" label="AA Samples" value="1" high-value="100" binding-path="NumAASamples" show-input-field="true" inverted="false" />
         <ui:Vector2Field label="AA Pixel" binding-path="AAPixel" />
-        <uie:ColorField label="Ray Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="AARayColor" show-alpha="false" />
+        <uie:ColorField label="Ray Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="AARayColor" show-alpha="true" />
         <ui:Button text="Recalculate Rays" display-tooltip-when-elided="true" name="recalculate_aa_rays" />
     </ui:Foldout>
     <ui:Foldout text="Depth of Field" name="dof">
@@ -19,13 +19,13 @@
         <ui:SliderInt picking-mode="Ignore" label="DoF Samples" value="2" high-value="100" show-input-field="true" binding-path="NumDoFSamples" />
         <ui:Slider picking-mode="Ignore" label="Aperture" value="0.5" high-value="2" binding-path="Aperature" show-input-field="true" />
         <ui:Slider picking-mode="Ignore" label="Ray Multiplier" value="1" high-value="100" binding-path="DoFRayMultiplier" low-value="1" show-input-field="true" />
-        <ui:Vector2Field label="DoF Pixel&#x9;" binding-path="DoFPixel" />
-        <uie:ColorField label="Ray Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="DoFRayColor" show-alpha="false" />
+        <ui:Vector2Field label="DoF Pixel" binding-path="DoFPixel" />
+        <uie:ColorField label="Ray Color" value="RGBA(0.000, 1.000, 1.000, 1.000)" binding-path="DoFRayColor" show-alpha="true" />
         <ui:Button text="Recalculate Rays" display-tooltip-when-elided="true" name="recalculate_dof_rays" />
     </ui:Foldout>
     <ui:Foldout text="Debug Ray" name="debug_ray">
         <ui:Toggle label="Enable Gizmos" binding-path="ShowDebugRay" />
         <ui:Vector2Field label="Debug Pixel" binding-path="DebugPixel" />
-        <ui:SliderInt picking-mode="Ignore" label="Magnitude Multiplier" value="1" high-value="100" low-value="1" binding-path="DebugRayMultiplier" />
+        <ui:Slider picking-mode="Ignore" label="Magnitude Multiplier" value="1" high-value="100" low-value="1" binding-path="DebugRayMultiplier" />
     </ui:Foldout>
 </ui:UXML>
