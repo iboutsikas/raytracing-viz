@@ -21,8 +21,6 @@ public class CameraVisualizer : MonoBehaviour
 
         public Vector3 viewDir;
         public float distance;
-        public float xOffset;
-        public float yOffset;
     }
     
     private List<Vector3> aaSamples = new List<Vector3>();
@@ -143,6 +141,13 @@ public class CameraVisualizer : MonoBehaviour
         var dir = info.distance * transform.forward + (top - yOffset) * transform.up + (left + xOffset) * transform.right;
         dir *= DebugRayMultiplier;
         Gizmos.DrawRay(Settings.From, dir);
+
+        if (Physics.Raycast(Settings.From, dir, out RaycastHit hit))
+        {
+            var hitPosition = Settings.From + hit.distance * dir.normalized;
+            Gizmos.DrawWireSphere(hitPosition, 0.01f);
+        }
+
         Gizmos.color = originalColor;
     }
 
