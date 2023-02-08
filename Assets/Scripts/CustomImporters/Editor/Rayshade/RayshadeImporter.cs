@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
+using UnityEditor;
 using UnityEditor.AssetImporters;
 
 using UnityEngine;
@@ -23,7 +23,18 @@ namespace iboutsikas.CustomImporters
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var baseName = Path.GetFileName(ctx.assetPath);
-            var root = new GameObject($"{baseName}_root");
+            GameObject root;
+            
+            var existing = AssetDatabase.LoadAssetAtPath(ctx.assetPath, typeof(UnityEngine.GameObject));
+
+            if (existing == null)
+            {
+                root = new GameObject($"{baseName}_root");
+            }
+            else
+            {
+                root = existing as GameObject;
+            }
 
             var reader = new RayshadeReader(ctx.assetPath, m_DefaultShader);
 

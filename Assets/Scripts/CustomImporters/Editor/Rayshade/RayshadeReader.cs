@@ -126,7 +126,7 @@ namespace iboutsikas.CustomImporters
         {
             int sphereCounter = 0;
             int triangleCounter = 0;
-            int polygonCounter = 0;
+            //int polygonCounter = 0;
 
             var lines = File.ReadAllLines(_filepath);
 
