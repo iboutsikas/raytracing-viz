@@ -141,6 +141,7 @@ public class CameraVisualizer : MonoBehaviour
         var dir = info.distance * transform.forward + (top - yOffset) * transform.up + (left + xOffset) * transform.right;
         dir *= DebugRayMultiplier;
         Gizmos.DrawRay(Settings.From, dir);
+        Handles.Label(Settings.From +(0.5f * dir), $"Ray Direction ({dir.x}, {dir.y}, {dir.z})");
 
         if (Physics.Raycast(Settings.From, dir, out RaycastHit hit))
         {

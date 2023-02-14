@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: a86bff4526413784489cc7ccf4e94748
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: ca76437a112414e429f0eeabbfb93d9f, type: 3}
+  defaultShader: {instanceID: 0}
