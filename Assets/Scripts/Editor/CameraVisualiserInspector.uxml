@@ -1,4 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Foldout text="Camera" name="camera">
+        <ui:Toggle label="Toggle" text="Show U, V, W" binding-path="ShowUVW" />
+    </ui:Foldout>
     <ui:Foldout text="Frustum and Image Plane" name="frustum_and_plane">
         <ui:Toggle label="Enable Gizmos" binding-path="ShowFrustumAndPlane" />
         <ui:Toggle label="Distace to Image Plane" binding-path="ShowDistanceToPlane" />

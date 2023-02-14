@@ -41,6 +41,7 @@ public class CameraVisualizer : MonoBehaviour
     public bool ShowHalfHeight = false;
     public bool ShowHalfWidth = false;
     public bool ShowFrustumLines = false;
+    public bool ShowUVW = false;
 
     public bool ShowDebugRay = false;
     public Vector2 DebugPixel = new Vector2(0, 0);
@@ -103,6 +104,34 @@ public class CameraVisualizer : MonoBehaviour
         info.topRight = info.distance * transform.forward + top * transform.up + right * transform.right;
         info.bottomRight = info.distance * transform.forward + bottom * transform.up + right * transform.right;
         info.bottomLeft = info.distance * transform.forward + bottom * transform.up + left * transform.right;
+
+        if (ShowUVW)
+        {
+            var originalColor = Gizmos.color;
+
+            {
+                var to = Settings.From + transform.right;
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(Settings.From, to);
+                Handles.Label(to, $"u({transform.right.x:f3}, {transform.right.y:f3}, {transform.right.z:f3})");
+            }
+
+            {
+                var to = Settings.From + transform.up;
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(Settings.From, to);
+                Handles.Label(to, $"v({transform.up.x:f3}, {transform.up.y:f3}, {transform.up.z:f3})");
+            }
+
+            {
+                var to = Settings.From - transform.forward;
+                Gizmos.color = Color.blue;
+                Gizmos.DrawLine(Settings.From, to);
+                Handles.Label(to, $"w({-transform.forward.x:f3}, {-transform.forward.y:f3}, {-transform.forward.z:f3})");
+            }
+
+            Gizmos.color = originalColor;
+        }
         
 
         if (ShowFrustumAndPlane)
