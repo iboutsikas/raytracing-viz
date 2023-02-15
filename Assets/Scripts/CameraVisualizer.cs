@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEditor;
 
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
@@ -33,7 +34,11 @@ public class CameraVisualizer : MonoBehaviour
     private float left;
     private float tan;
 
+    private Vector3 u, v, w;
+
     private Vector2 pixelSize;
+
+    private MeshRenderer m_MeshRenderer;
     
     public bool ShowFrustumAndPlane = true;
     public bool ShowPlane = false;
@@ -62,35 +67,50 @@ public class CameraVisualizer : MonoBehaviour
     public CameraSettings Settings;
     public GameObject ImagePlane;
 
+    private void Awake()
+    {
+        if (ImagePlane != null) 
+            m_MeshRenderer = ImagePlane.GetComponent<MeshRenderer>();
+    }
+
     void Update()
     {
         if (Settings == null)
             return;
 
-        var viewDir = Settings.At - Settings.From;
-        transform.position = Settings.From;
-        transform.rotation = Quaternion.LookRotation(viewDir.normalized, Settings.Up);
+        if (Settings.NeedsUpdate)
+        {
+            var viewDir = Settings.At - Settings.From;
+            transform.position = Settings.From;
+            transform.rotation = Quaternion.LookRotation(viewDir.normalized, Settings.Up);
 
+            var d = viewDir.magnitude;
+            var theta_2 = (Settings.Angle * 0.5f) * Mathf.Deg2Rad;
+            tan = Mathf.Tan(theta_2);
 
-        var d = viewDir.magnitude;
-        var theta_2 = (Settings.Angle * 0.5f) * Mathf.Deg2Rad ;
-        tan = Mathf.Tan(theta_2);
+            top = d * tan;
+            left = -d * tan;
+            bottom = -top;
+            right = -left;
 
-        top = d * tan;
-        left = -d * tan;
-        bottom = -top;
-        right = -left;
+            w = -viewDir.normalized;
+            u = Vector3.Cross(Settings.Up, w).normalized;
+            v = Vector3.Cross(w, u).normalized;
 
-        pixelSize.x = (2.0f * top) / Settings.Resolution.x;
-        pixelSize.y = (2.0f * right) / Settings.Resolution.y;
+            pixelSize.x = (right - left) / Settings.Resolution.x;
+            pixelSize.y = (top - bottom) / Settings.Resolution.y;
 
-        if (ImagePlane == null)
-            return;
+            if (ImagePlane != null)
+            {
+                ImagePlane.transform.position = Settings.At;
+                ImagePlane.transform.localScale = new Vector3(right - left, top - bottom, 1);
+                ImagePlane.GetComponent<MeshRenderer>()
+                    .sharedMaterial
+                    .SetVector("_NumPixels", new Vector4(Settings.Resolution.x, Settings.Resolution.y, 1, 1));
+            }
 
-        ImagePlane.transform.position = Settings.At;
-        ImagePlane.transform.localScale = new Vector3(2.0f * right, 2.0f * top, 1);
-        ImagePlane.GetComponent<MeshRenderer>().sharedMaterial.SetVector("_NumPixels", new Vector4(Settings.Resolution.x, Settings.Resolution.y, 1, 1));
-
+            Settings.NeedsUpdate = false;
+        }
     }
 
     void OnDrawGizmos()
@@ -100,10 +120,12 @@ public class CameraVisualizer : MonoBehaviour
         info.viewDir = Settings.At - Settings.From;
         info.distance = info.viewDir.magnitude;
 
-        info.topLeft = info.distance * transform.forward + top * transform.up + left * transform.right;
-        info.topRight = info.distance * transform.forward + top * transform.up + right * transform.right;
-        info.bottomRight = info.distance * transform.forward + bottom * transform.up + right * transform.right;
-        info.bottomLeft = info.distance * transform.forward + bottom * transform.up + left * transform.right;
+        info.topLeft = info.distance * transform.forward + top * transform.up + left * -transform.right;
+        info.topRight = info.distance * transform.forward + top * transform.up + right * -transform.right;
+        info.bottomRight = info.distance * transform.forward + bottom * transform.up + right * -transform.right;
+        info.bottomLeft = info.distance * transform.forward + bottom * transform.up + left * -transform.right;
+
+        
 
         if (ShowUVW)
         {
@@ -113,21 +135,21 @@ public class CameraVisualizer : MonoBehaviour
                 var to = Settings.From + transform.right;
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(Settings.From, to);
-                Handles.Label(to, $"u({transform.right.x:f3}, {transform.right.y:f3}, {transform.right.z:f3})");
+                Handles.Label(to, $"u({u.x:f3}, {u.y:f3}, {u.z:f3})");
             }
 
             {
-                var to = Settings.From + transform.up;
+                var to = Settings.From + v;
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(Settings.From, to);
-                Handles.Label(to, $"v({transform.up.x:f3}, {transform.up.y:f3}, {transform.up.z:f3})");
+                Handles.Label(to, $"v({v.x:f3}, {v.y:f3}, {v.z:f3})");
             }
 
             {
-                var to = Settings.From - transform.forward;
+                var to = Settings.From + w;
                 Gizmos.color = Color.blue;
                 Gizmos.DrawLine(Settings.From, to);
-                Handles.Label(to, $"w({-transform.forward.x:f3}, {-transform.forward.y:f3}, {-transform.forward.z:f3})");
+                Handles.Label(to, $"w({w.x:f3}, {w.y:f3}, {w.z:f3})");
             }
 
             Gizmos.color = originalColor;
@@ -158,7 +180,6 @@ public class CameraVisualizer : MonoBehaviour
 
     private void DrawDebugRay(GizmoInfo info)
     {
-
         //float xOffset = ShowDebugRay ? (DebugPixel.x + 0.5f) * pixelSize.x : 0.0f;
         //float yOffset = ShowDebugRay ? (DebugPixel.y + 0.5f) * pixelSize.y : 0.0f;
 
@@ -167,10 +188,15 @@ public class CameraVisualizer : MonoBehaviour
 
         var originalColor = Gizmos.color;
         Gizmos.color = Color.magenta;
-        var dir = info.distance * transform.forward + (top - yOffset) * transform.up + (left + xOffset) * transform.right;
-        dir *= DebugRayMultiplier;
-        Gizmos.DrawRay(Settings.From, dir);
-        Handles.Label(Settings.From +(0.5f * dir), $"Ray Direction ({dir.x}, {dir.y}, {dir.z})");
+        // We need two directions as Unity is left handed. dir is what students will compute for their 
+        // direction while unityDir is basically flipped on the u axis so it matches what they would see
+        // in a right-handed system
+
+        var dir = -info.distance * w + (top - yOffset) * v + (left + xOffset) * u;
+        var unityDir = -info.distance * w + (top - yOffset) * v + (left + xOffset) * transform.right; 
+
+        Gizmos.DrawRay(Settings.From, DebugRayMultiplier * unityDir);
+        Handles.Label(Settings.From + (0.5f * dir), $"Ray Direction ({dir.x}, {dir.y}, {dir.z})");
 
         if (Physics.Raycast(Settings.From, dir, out RaycastHit hit))
         {
