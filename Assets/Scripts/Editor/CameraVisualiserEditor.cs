@@ -23,6 +23,7 @@ public class CameraVisualiserEditor : Editor
 
         inspector.Add(new PropertyField(serializedObject.FindProperty("Settings")));
         inspector.Add(new PropertyField(serializedObject.FindProperty("ImagePlane")));
+        inspector.Add(new PropertyField(serializedObject.FindProperty("CameraAxis")));
 
         VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(xmlPath);
         visualTree.CloneTree(inspector);

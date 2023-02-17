@@ -66,6 +66,7 @@ public class CameraVisualizer : MonoBehaviour
 
     public CameraSettings Settings;
     public GameObject ImagePlane;
+    public GameObject CameraAxis;
 
     private void Awake()
     {
@@ -111,6 +112,9 @@ public class CameraVisualizer : MonoBehaviour
 
             Settings.NeedsUpdate = false;
         }
+        
+        if (CameraAxis != null)
+            CameraAxis.SetActive(ShowUVW);
     }
 
     void OnDrawGizmos()
@@ -125,34 +129,22 @@ public class CameraVisualizer : MonoBehaviour
         info.bottomRight = info.distance * transform.forward + bottom * transform.up + right * -transform.right;
         info.bottomLeft = info.distance * transform.forward + bottom * transform.up + left * -transform.right;
 
-        
-
         if (ShowUVW)
         {
-            var originalColor = Gizmos.color;
-
             {
                 var to = Settings.From + transform.right;
-                Gizmos.color = Color.red;
-                Gizmos.DrawLine(Settings.From, to);
                 Handles.Label(to, $"u({u.x:f3}, {u.y:f3}, {u.z:f3})");
             }
 
             {
                 var to = Settings.From + v;
-                Gizmos.color = Color.green;
-                Gizmos.DrawLine(Settings.From, to);
                 Handles.Label(to, $"v({v.x:f3}, {v.y:f3}, {v.z:f3})");
             }
 
             {
                 var to = Settings.From + w;
-                Gizmos.color = Color.blue;
-                Gizmos.DrawLine(Settings.From, to);
                 Handles.Label(to, $"w({w.x:f3}, {w.y:f3}, {w.z:f3})");
             }
-
-            Gizmos.color = originalColor;
         }
         
 
