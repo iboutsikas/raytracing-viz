@@ -23,6 +23,8 @@ public class CameraVisualizer : MonoBehaviour
         public Vector3 viewDir;
         public float distance;
     }
+
+    const float TAU = 2.0f * Mathf.PI; 
     
     private List<Vector3> aaSamples = new List<Vector3>();
     private List<Vector3> dofOrigins = new List<Vector3>();
@@ -72,6 +74,32 @@ public class CameraVisualizer : MonoBehaviour
     {
         if (ImagePlane != null) 
             m_MeshRenderer = ImagePlane.GetComponent<MeshRenderer>();
+    }
+
+    private void OnValidate()
+    {
+        if (Settings == null)
+            return;
+
+        var viewDir = Settings.At - Settings.From;
+        transform.position = Settings.From;
+        transform.rotation = Quaternion.LookRotation(viewDir.normalized, Settings.Up);
+
+        var d = viewDir.magnitude;
+        var theta_2 = (Settings.Angle * 0.5f) * Mathf.Deg2Rad;
+        tan = Mathf.Tan(theta_2);
+
+        top = d * tan;
+        left = -d * tan;
+        bottom = -top;
+        right = -left;
+
+        w = -viewDir.normalized;
+        u = Vector3.Cross(Settings.Up, w).normalized;
+        v = Vector3.Cross(w, u).normalized;
+
+        pixelSize.x = (right - left) / Settings.Resolution.x;
+        pixelSize.y = (top - bottom) / Settings.Resolution.y;
     }
 
     void Update()
@@ -188,11 +216,13 @@ public class CameraVisualizer : MonoBehaviour
         var unityDir = -info.distance * w + (top - yOffset) * v + (left + xOffset) * transform.right; 
 
         Gizmos.DrawRay(Settings.From, DebugRayMultiplier * unityDir);
-        Handles.Label(Settings.From + (0.5f * dir), $"Ray Direction ({dir.x}, {dir.y}, {dir.z})");
+        GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+        labelStyle.fontSize = 18;
+        Handles.Label(Settings.From + (0.5f * unityDir), $"Pixel ({DebugPixel.x}, {DebugPixel.y}) Ray Direction ({dir.x}, {dir.y}, {dir.z})", labelStyle);
 
-        if (Physics.Raycast(Settings.From, dir, out RaycastHit hit))
+        if (Physics.Raycast(Settings.From, unityDir, out RaycastHit hit))
         {
-            var hitPosition = Settings.From + hit.distance * dir.normalized;
+            var hitPosition = Settings.From + hit.distance * unityDir.normalized;
             Gizmos.DrawWireSphere(hitPosition, 0.01f);
         }
 
@@ -328,10 +358,13 @@ public class CameraVisualizer : MonoBehaviour
 
         for (int i = 0; i < NumDoFSamples; i++)
         {
-            float xOffset = Aperature * UnityEngine.Random.Range(-1.0f, 1.0f);
-            float yOffset = Aperature * UnityEngine.Random.Range(-1.0f, 1.0f);
 
-            var origin = transform.position + xOffset * transform.right + yOffset * transform.up;
+            float radius = Mathf.Sqrt(UnityEngine.Random.value);
+            float theta = TAU * UnityEngine.Random.value;
+            float ax = radius * Mathf.Cos(theta);
+            float ay = radius * Mathf.Sin(theta);
+
+            var origin = transform.position + Aperature * (ax * transform.right + ay * transform.up);
 
             dofOrigins.Add(origin);
         }
