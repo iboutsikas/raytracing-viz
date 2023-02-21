@@ -264,7 +264,7 @@ public class CameraVisualizer : MonoBehaviour
             Gizmos.color = Color.green;
             Gizmos.DrawRay(Settings.At, dir);
 
-            Handles.Label(Settings.At + dir / 2, $"d * tan({Settings.Angle}/2) = {top}");
+            Handles.Label(Settings.At + dir / 2, $"top = {top}");
 
             Handles.Label(endPoint + dir * 0.08f, $"({endPoint.x:f2}, {endPoint.y:f2}, {endPoint.z:f2})");
 
@@ -277,7 +277,7 @@ public class CameraVisualizer : MonoBehaviour
 
             Gizmos.color = Color.red;
             Gizmos.DrawRay(Settings.At, dir);
-            Handles.Label(Settings.At + (dir / 2) + (0.05f * transform.up), $"r = aspect * top = {right}");
+            Handles.Label(Settings.At + (dir / 2) + (0.05f * transform.up), $"right = {right}");
             Handles.Label(endPoint + dir * 0.08f, $"({endPoint.x:f2}, {endPoint.y:f2}, {endPoint.z:f2})");
         }
 

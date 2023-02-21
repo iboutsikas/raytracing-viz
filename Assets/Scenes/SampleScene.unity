@@ -138,7 +138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &162800978
 Transform:
   m_ObjectHideFlags: 0
@@ -684,10 +684,10 @@ MonoBehaviour:
   ShowFrustumAndPlane: 1
   ShowPlane: 1
   ShowDistanceToPlane: 0
-  ShowHalfHeight: 0
+  ShowHalfHeight: 1
   ShowHalfWidth: 1
-  ShowFrustumLines: 1
-  ShowUVW: 0
+  ShowFrustumLines: 0
+  ShowUVW: 1
   ShowDebugRay: 0
   DebugPixel: {x: 127, y: 127}
   DebugRayMultiplier: 1
