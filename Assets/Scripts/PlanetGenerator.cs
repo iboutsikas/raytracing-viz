@@ -1,15 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+
 using Unity.Mathematics;
+
 using UnityEditor;
+
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
 [ExecuteInEditMode]
-public class PlanetGenerator : MonoBehaviour
-{
+public class PlanetGenerator : MonoBehaviour {
     private List<Vector3> m_Vertices = new List<Vector3>();
     private List<Vector3> m_Normals = new List<Vector3>();
     private List<Vector2> m_UV = new List<Vector2>();
@@ -23,63 +25,42 @@ public class PlanetGenerator : MonoBehaviour
     public Transform ContentRoot;
     public GameObject HandlePrefab;
     public bool ShowGizmos = false;
-    public List<Vector3> Vertices {  get { return m_Vertices; } }
+    public List<Vector3> Vertices { get { return m_Vertices; } }
 
-    private void OnEnable()
-    {
+    private void OnEnable() {
         m_MeshFilter = GetComponent<MeshFilter>();
-        if (m_MeshFilter.sharedMesh == null)
-        {
+        if (m_MeshFilter.sharedMesh == null) {
             var mesh = new Mesh();
             mesh.name = "Planet";
             m_MeshFilter.sharedMesh = mesh;
 
-        }
-        else
-        {
-            m_Vertices  = new List<Vector3>(m_MeshFilter.sharedMesh.vertices);
-            m_Normals   = new List<Vector3>(m_MeshFilter.sharedMesh.normals);
-            m_UV        = new List<Vector2>(m_MeshFilter.sharedMesh.uv);
-            m_Indices   = new List<int>(m_MeshFilter.sharedMesh.triangles);
+        } else {
+            m_Vertices = new List<Vector3>(m_MeshFilter.sharedMesh.vertices);
+            m_Normals = new List<Vector3>(m_MeshFilter.sharedMesh.normals);
+            m_UV = new List<Vector2>(m_MeshFilter.sharedMesh.uv);
+            m_Indices = new List<int>(m_MeshFilter.sharedMesh.triangles);
         }
     }
 
-    public void Rebuild()
-    {
+    public void Rebuild() {
 
         if (Level < 0)
             Level = 0;
 
         var w = (2 << Level) + 1;
 
-        m_Vertices = new List<Vector3>(w * w);
-        m_Normals = new List<Vector3>(w * w);
-        m_UV = new List<Vector2>(w * w);
+        // We are accessing these with indices to we can  just resize these
+        m_Vertices.Resize(w * w);
+        m_UV.Resize(w * w);
+
+        // Normals need to start out at 0, so we cannot just resize
+        m_Normals = new List<Vector3>();
+        m_Normals.Resize(w * w, new Vector3(0, 0, 0));
 
         m_Indices.Clear();
+        
 
-        for (int i = m_Vertices.Count; i < m_Vertices.Capacity; i++)
-        {
-            m_Vertices.Add(new Vector3());
-        }
-
-        for (int i = m_Normals.Count; i < m_Vertices.Capacity; i++)
-        {
-            m_Normals.Add(new Vector3(0, 0, 0));
-        }
-
-        for (int i = m_UV.Count; i < m_UV.Capacity; i++)
-        {
-            m_UV.Add(new Vector2());
-        }
-
-        if (ContentRoot != null)
-        {
-            while(ContentRoot.childCount > 0)
-            {
-                GameObject.DestroyImmediate(ContentRoot.GetChild(0).gameObject);
-            }
-        }
+        ClearHandles();
 
         float arrayScale = 2.0f / (2 << Level);
 
@@ -91,24 +72,21 @@ public class PlanetGenerator : MonoBehaviour
          * 3 4 5  and not like this  3 4 5
          * 0 1 2                     6 7 8
          */
-        for (int z = 0; z < w; z++)
-        {
-            for (int x = 0; x < w; x++)
-            {
+        for (int z = 0; z < w; z++) {
+            for (int x = 0; x < w; x++) {
                 float xx = x * arrayScale - 1.0f;
                 float zz = z * arrayScale - 1.0f;
                 float yy = 1 - Mathf.Abs(xx) - Mathf.Abs(zz);
                 float t = Mathf.Min(0, yy);
 
-                Vector3 v = new Vector3(xx + Mathf.Sign(xx) * t, yy, zz + Mathf.Sign(zz) * t).normalized * Size;
+                Vector3 v = new Vector3(xx + Mathf.Sign(xx) * t, yy, zz + Mathf.Sign(zz) * t).normalized;
 
                 float n = 0, s = 1;
-                for (int i = 0; i < Level; s *=2, i++)
-                {
+                for (int i = 0; i < Level; s *= 2, i++) {
                     n += OpenSimplex2S.Noise3_ImproveXZ(Seed, s * v.x, s * v.y, s * v.z) / s;
                 }
 
-                m_Vertices[z * w + x] = v * ((n) * 0.125f + 1.0f);
+                m_Vertices[z * w + x] = v * (n * 0.147f + 1.0f) * Size;
                 m_UV[z * w + x] = new Vector2(xx * 0.5f + 0.5f, zz * 0.5f + 0.5f);
 
 
@@ -122,10 +100,8 @@ public class PlanetGenerator : MonoBehaviour
             }
         }
 
-        for (int j = 0; j < w - 1; j++)
-        {
-            for (int i = 0; i < w - 1; i++)
-            {
+        for (int j = 0; j < w - 1; j++) {
+            for (int i = 0; i < w - 1; i++) {
                 /**
                  * If only one of the directions is < w/2 we are on
                  * the quadrant where the quads go like this:
@@ -135,8 +111,7 @@ public class PlanetGenerator : MonoBehaviour
                  *  i.e top left quadrant and bottom right quadrant
                  *  in the project description image.
                  */
-                if ((j < w / 2) ^ (i < w / 2))
-                {
+                if ((j < w / 2) ^ (i < w / 2)) {
                     // The one I am at
                     m_Indices.Add(j * w + i);
                     // The one above
@@ -159,8 +134,7 @@ public class PlanetGenerator : MonoBehaviour
                  * i.e. top right and bottom left in the project description 
                  * image.
                  */
-                else
-                {
+                else {
                     m_Indices.Add(j * w + i);
                     m_Indices.Add(j * w + i + w);
                     m_Indices.Add(j * w + i + 1);
@@ -172,8 +146,7 @@ public class PlanetGenerator : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < m_Indices.Count; i += 3)
-        {
+        for (int i = 0; i < m_Indices.Count; i += 3) {
             int[] idx = new int[3];
             Vector3 v0, v1, v2;
 
@@ -191,24 +164,37 @@ public class PlanetGenerator : MonoBehaviour
             m_Normals[idx[1]] += faceNorm;
             m_Normals[idx[2]] += faceNorm;
 
-            for (int l = 0; l < 3; l++)
-            {
+            /**
+             *   6 7 8
+             * ^ 3 4 5
+             * z 0 1 2
+             *     x>
+             */
+#if true
+            for (int l = 0; l < 3; l++) {
                 int x = idx[l] % w;
                 int z = idx[l] / w;
 
+                // We are on the left or right edge of the grid but
+                // not in the middle (indices 3 and 5 above) of the
+                // X axis 
                 if ((z == 0 || z == w - 1) && x != w - x - 1)
                     m_Normals[z * w + w - x - 1] += faceNorm;
 
+                // We are on the top or bottom edge of the grid but
+                // not in the middle (indices 1 and 7 above) of the
+                // Z axis 
                 if ((x == 0 || x == w - 1) && z != w - z - 1)
                     m_Normals[(w - z - 1) * w + x] += faceNorm;
 
+                // We are on any of the corners (indices 0, 2, 6, 8 above)
                 if ((x == 0 || x == w - 1) && (z == 0 || z == w - 1))
                     m_Normals[(w - z - 1) * w + w - x - 1] += faceNorm;
             }
+#endif
         }
 
-        for (int i = 0; i < m_Normals.Count; i++)
-        {
+        for (int i = 0; i < m_Normals.Count; i++) {
             m_Normals[i].Normalize();
         }
 
@@ -223,17 +209,27 @@ public class PlanetGenerator : MonoBehaviour
         Debug.Log("Done rebuilding");
     }
 
-    public void ToggleGizmos()
-    {
+    public void ToggleGizmos() {
         ShowGizmos = !ShowGizmos;
 
         var data = ContentRoot.GetComponentsInChildren<OctahedralExtraData>();
 
-        foreach (var d in data)
-        {
+        foreach (var d in data) {
             d.ShowGizmos = ShowGizmos;
         }
 
         Debug.Log($"Toggled {data.Length} objects");
+    }
+
+    /**
+     * Clears all the handles that might have already been added to ContentRoot 
+     * from a previous build
+     */
+    private void ClearHandles() {
+        if (ContentRoot != null) {
+            while (ContentRoot.childCount > 0) {
+                GameObject.DestroyImmediate(ContentRoot.GetChild(0).gameObject);
+            }
+        }
     }
 }
