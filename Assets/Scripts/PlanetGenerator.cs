@@ -105,10 +105,10 @@ public class PlanetGenerator : MonoBehaviour
                 float n = 0, s = 1;
                 for (int i = 0; i < Level; s *=2, i++)
                 {
-                    n += OpenSimplex2S.Noise3_Fallback(Seed, s * v.x, s * v.y, s * v.z) / s;
+                    n += OpenSimplex2S.Noise3_ImproveXZ(Seed, s * v.x, s * v.y, s * v.z) / s;
                 }
 
-                m_Vertices[z * w + x] = v * ((n - 1.0f) * 0.125f + 1.0f);
+                m_Vertices[z * w + x] = v * ((n) * 0.125f + 1.0f);
                 m_UV[z * w + x] = new Vector2(xx * 0.5f + 0.5f, zz * 0.5f + 0.5f);
 
 
