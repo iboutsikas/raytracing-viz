@@ -85,8 +85,11 @@ public class PlanetGenerator : MonoBehaviour {
                 for (int i = 0; i < Level; s *= 2, i++) {
                     n += OpenSimplex2S.Noise3_ImproveXZ(Seed, s * v.x, s * v.y, s * v.z) / s;
                 }
-
+#if true
                 m_Vertices[z * w + x] = v * (n * 0.147f + 1.0f) * Size;
+#else
+                m_Vertices[z * w + x] = v * Size;
+#endif
                 m_UV[z * w + x] = new Vector2(xx * 0.5f + 0.5f, zz * 0.5f + 0.5f);
 
 
@@ -96,6 +99,7 @@ public class PlanetGenerator : MonoBehaviour {
                 data.X = x;
                 data.Z = z;
                 data.ArrayIndex = z * w + x;
+                data.ShowGizmos = this.ShowGizmos;
                 go.transform.position = m_Vertices[z * w + x];
             }
         }
@@ -146,13 +150,13 @@ public class PlanetGenerator : MonoBehaviour {
             }
         }
 
-        for (int i = 0; i < m_Indices.Count; i += 3) {
+        for (int triangle0 = 0; triangle0 < m_Indices.Count; triangle0 += 3) {
             int[] idx = new int[3];
             Vector3 v0, v1, v2;
 
-            idx[0] = m_Indices[i + 0];
-            idx[1] = m_Indices[i + 1];
-            idx[2] = m_Indices[i + 2];
+            idx[0] = m_Indices[triangle0 + 0];
+            idx[1] = m_Indices[triangle0 + 1];
+            idx[2] = m_Indices[triangle0 + 2];
 
             v0 = m_Vertices[idx[0]];
             v1 = m_Vertices[idx[1]];
@@ -165,9 +169,11 @@ public class PlanetGenerator : MonoBehaviour {
             m_Normals[idx[2]] += faceNorm;
 
             /**
-             *   6 7 8
-             * ^ 3 4 5
-             * z 0 1 2
+             *   20 21 22 23 24
+             *   15 16 17 18 19
+             *   10 11 12 13 14
+             * ^  5  6  7  8  9 
+             * z  0  1  2  3  4
              *     x>
              */
 #if true
@@ -176,18 +182,20 @@ public class PlanetGenerator : MonoBehaviour {
                 int z = idx[l] / w;
 
                 // We are on the left or right edge of the grid but
-                // not in the middle (indices 3 and 5 above) of the
-                // X axis 
+                // not in the middle (indices 2 and 22 above) of the
+                // X axis, so we have to reflect. So index 1 would reflect
+                // to index 3 here.
                 if ((z == 0 || z == w - 1) && x != w - x - 1)
                     m_Normals[z * w + w - x - 1] += faceNorm;
 
                 // We are on the top or bottom edge of the grid but
-                // not in the middle (indices 1 and 7 above) of the
-                // Z axis 
+                // not in the middle (indices 10 and 14 above) of the
+                // Z axis, so we have to reflect. Index 1 would reflect
+                // to index 21 here.
                 if ((x == 0 || x == w - 1) && z != w - z - 1)
                     m_Normals[(w - z - 1) * w + x] += faceNorm;
 
-                // We are on any of the corners (indices 0, 2, 6, 8 above)
+                // We are on any of the corners (indices 0, 5, 20, 24 above)
                 if ((x == 0 || x == w - 1) && (z == 0 || z == w - 1))
                     m_Normals[(w - z - 1) * w + w - x - 1] += faceNorm;
             }
